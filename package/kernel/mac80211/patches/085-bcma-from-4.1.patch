@@ -1,14 +1,14 @@
 --- a/drivers/bcma/bcma_private.h
 +++ b/drivers/bcma/bcma_private.h
-@@ -41,6 +41,7 @@ int __init bcma_bus_scan_early(struct bc
- 			       struct bcma_device_id *match,
- 			       struct bcma_device *core);
+@@ -26,6 +26,7 @@ bool bcma_wait_value(struct bcma_device
+ 		     int timeout);
+ void bcma_prepare_core(struct bcma_bus *bus, struct bcma_device *core);
  void bcma_init_bus(struct bcma_bus *bus);
 +void bcma_unregister_cores(struct bcma_bus *bus);
- 
- /* sprom.c */
- int bcma_sprom_get(struct bcma_bus *bus);
-@@ -105,6 +106,11 @@ static inline void __exit bcma_host_soc_
+ int bcma_bus_register(struct bcma_bus *bus);
+ void bcma_bus_unregister(struct bcma_bus *bus);
+ int __init bcma_bus_early_register(struct bcma_bus *bus);
+@@ -101,6 +102,11 @@ static inline void __exit bcma_host_soc_
  
  /* driver_pci.c */
  u32 bcma_pcie_read(struct bcma_drv_pci *pc, u32 address);
@@ -42,7 +42,7 @@
  #if IS_BUILTIN(CONFIG_OF)
 --- a/drivers/bcma/driver_pci.c
 +++ b/drivers/bcma/driver_pci.c
-@@ -262,21 +262,21 @@ void bcma_core_pci_power_save(struct bcm
+@@ -282,21 +282,21 @@ void bcma_core_pci_power_save(struct bcm
  }
  EXPORT_SYMBOL_GPL(bcma_core_pci_power_save);
  
@@ -67,7 +67,7 @@
  
  	err = pci_read_config_dword(pdev, BCMA_PCI_IRQMASK, &tmp);
  	if (err)
-@@ -308,28 +308,12 @@ static void bcma_core_pci_extend_L1timer
+@@ -328,28 +328,12 @@ static void bcma_core_pci_extend_L1timer
  	bcma_pcie_read(pc, BCMA_CORE_PCI_DLLP_PMTHRESHREG);
  }
  
@@ -165,7 +165,7 @@
 +}
 --- a/drivers/bcma/host_pci.c
 +++ b/drivers/bcma/host_pci.c
-@@ -211,16 +211,26 @@ static int bcma_host_pci_probe(struct pc
+@@ -213,16 +213,26 @@ static int bcma_host_pci_probe(struct pc
  	/* Initialize struct, detect chip */
  	bcma_init_bus(bus);
  
@@ -193,7 +193,7 @@
  err_pci_unmap_mmio:
  	pci_iounmap(dev, bus->mmio);
  err_pci_release_regions:
-@@ -281,9 +291,12 @@ static const struct pci_device_id bcma_p
+@@ -283,9 +293,12 @@ static const struct pci_device_id bcma_p
  	{ PCI_DEVICE(PCI_VENDOR_ID_BROADCOM, 0x4357) },
  	{ PCI_DEVICE(PCI_VENDOR_ID_BROADCOM, 0x4358) },
  	{ PCI_DEVICE(PCI_VENDOR_ID_BROADCOM, 0x4359) },
@@ -206,7 +206,7 @@
  	{ PCI_DEVICE(PCI_VENDOR_ID_BROADCOM, 0x4727) },
  	{ PCI_DEVICE(PCI_VENDOR_ID_BROADCOM, 43227) },	/* 0xa8db, BCM43217 (sic!) */
  	{ PCI_DEVICE(PCI_VENDOR_ID_BROADCOM, 43228) },	/* 0xa8dc */
-@@ -308,3 +321,31 @@ void __exit bcma_host_pci_exit(void)
+@@ -310,3 +323,31 @@ void __exit bcma_host_pci_exit(void)
  {
  	pci_unregister_driver(&bcma_pci_bridge_driver);
  }
@@ -240,7 +240,7 @@
 +EXPORT_SYMBOL_GPL(bcma_host_pci_down);
 --- a/drivers/bcma/main.c
 +++ b/drivers/bcma/main.c
-@@ -288,7 +288,7 @@ static int bcma_register_devices(struct
+@@ -372,7 +372,7 @@ static int bcma_register_devices(struct
  	return 0;
  }
  
@@ -251,7 +251,7 @@
  
 --- a/drivers/net/wireless/b43/main.c
 +++ b/drivers/net/wireless/b43/main.c
-@@ -4770,7 +4770,7 @@ static void b43_wireless_core_exit(struc
+@@ -4819,7 +4819,7 @@ static void b43_wireless_core_exit(struc
  	switch (dev->dev->bus_type) {
  #ifdef CPTCFG_B43_BCMA
  	case B43_BUS_BCMA:
@@ -260,7 +260,7 @@
  		break;
  #endif
  #ifdef CPTCFG_B43_SSB
-@@ -4817,9 +4817,9 @@ static int b43_wireless_core_init(struct
+@@ -4866,9 +4866,9 @@ static int b43_wireless_core_init(struct
  	switch (dev->dev->bus_type) {
  #ifdef CPTCFG_B43_BCMA
  	case B43_BUS_BCMA:
@@ -274,7 +274,7 @@
  #ifdef CPTCFG_B43_SSB
 --- a/drivers/net/wireless/brcm80211/brcmsmac/main.c
 +++ b/drivers/net/wireless/brcm80211/brcmsmac/main.c
-@@ -4669,7 +4669,7 @@ static int brcms_b_attach(struct brcms_c
+@@ -4668,7 +4668,7 @@ static int brcms_b_attach(struct brcms_c
  	brcms_c_coredisable(wlc_hw);
  
  	/* Match driver "down" state */
@@ -283,7 +283,7 @@
  
  	/* turn off pll and xtal to match driver "down" state */
  	brcms_b_xtal(wlc_hw, OFF);
-@@ -4960,7 +4960,7 @@ static int brcms_b_up_prep(struct brcms_
+@@ -4959,7 +4959,7 @@ static int brcms_b_up_prep(struct brcms_
  	 * Configure pci/pcmcia here instead of in brcms_c_attach()
  	 * to allow mfg hotswap:  down, hotswap (chip power cycle), up.
  	 */
@@ -292,7 +292,7 @@
  			      true);
  
  	/*
-@@ -4970,12 +4970,12 @@ static int brcms_b_up_prep(struct brcms_
+@@ -4969,12 +4969,12 @@ static int brcms_b_up_prep(struct brcms_
  	 */
  	if (brcms_b_radio_read_hwdisabled(wlc_hw)) {
  		/* put SB PCI in down state again */
@@ -307,7 +307,7 @@
  
  	/* reset the d11 core */
  	brcms_b_corereset(wlc_hw, BRCMS_USE_COREFLAGS);
-@@ -5172,7 +5172,7 @@ static int brcms_b_down_finish(struct br
+@@ -5171,7 +5171,7 @@ static int brcms_b_down_finish(struct br
  
  		/* turn off primary xtal and pll */
  		if (!wlc_hw->noreset) {
