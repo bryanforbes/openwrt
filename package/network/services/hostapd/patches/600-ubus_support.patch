@@ -647,7 +647,7 @@
  	sta->capability = capab_info;
  	sta->listen_interval = listen_interval;
  
-@@ -1785,7 +1811,7 @@ int ieee802_11_mgmt(struct hostapd_data 
+@@ -1785,7 +1811,7 @@ int ieee802_11_mgmt(struct hostapd_data
  
  
  	if (stype == WLAN_FC_STYPE_PROBE_REQ) {
@@ -656,7 +656,7 @@
  		return 1;
  	}
  
-@@ -1800,17 +1826,17 @@ int ieee802_11_mgmt(struct hostapd_data 
+@@ -1800,17 +1826,17 @@ int ieee802_11_mgmt(struct hostapd_data
  	switch (stype) {
  	case WLAN_FC_STYPE_AUTH:
  		wpa_printf(MSG_DEBUG, "mgmt::auth");

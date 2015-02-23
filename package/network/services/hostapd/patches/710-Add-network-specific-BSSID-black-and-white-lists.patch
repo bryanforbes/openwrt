@@ -27,8 +27,6 @@ Signed-off-by: Stefan Tomanek <stefan.tomanek@wertarbyte.de>
  wpa_supplicant/wpa_supplicant.conf |  15 +++
  7 files changed, 323 insertions(+), 101 deletions(-)
 
-diff --git a/src/utils/common.c b/src/utils/common.c
-index 9902004..dd6e4aa 100644
 --- a/src/utils/common.c
 +++ b/src/utils/common.c
 @@ -36,6 +36,25 @@ int hex2byte(const char *hex)
@@ -76,6 +74,7 @@ index 9902004..dd6e4aa 100644
 -			return -1;
 -		*addr++ = (a << 4) | b;
 -		if (i < 5 && *txt++ != ':')
+-			return -1;
 +/**
 + * hwaddr_masked_aton - Convert ASCII string with optional mask to MAC address (colon-delimited format)
 + * @txt: MAC address with optional mask as a string (e.g., "00:11:22:33:44:55/ff:ff:ff:ff:00:00")
@@ -102,7 +101,7 @@ index 9902004..dd6e4aa 100644
 +		r = hwaddr_parse(r + 1, mask);
 +		/* parser error? */
 +		if (!r)
- 			return -1;
++			return -1;
 +	} else {
 +		/* mask specified but not allowed or trailing garbage */
 +		return -1;
@@ -115,7 +114,7 @@ index 9902004..dd6e4aa 100644
  /**
   * hwaddr_compact_aton - Convert ASCII string to MAC address (no colon delimitors format)
   * @txt: MAC address as a string (e.g., "001122334455")
-@@ -144,6 +184,30 @@ int hexstr2bin(const char *hex, u8 *buf, size_t len)
+@@ -144,6 +184,30 @@ int hexstr2bin(const char *hex, u8 *buf,
  }
  
  
@@ -146,8 +145,6 @@ index 9902004..dd6e4aa 100644
  /**
   * inc_byte_array - Increment arbitrary length byte array by one
   * @counter: Pointer to byte array
-diff --git a/src/utils/common.h b/src/utils/common.h
-index 14d9ad1..1127074 100644
 --- a/src/utils/common.h
 +++ b/src/utils/common.h
 @@ -468,6 +468,7 @@ typedef u64 __bitwise le64;
@@ -158,7 +155,7 @@ index 14d9ad1..1127074 100644
  int hwaddr_compact_aton(const char *txt, u8 *addr);
  int hwaddr_aton2(const char *txt, u8 *addr);
  int hex2byte(const char *hex);
-@@ -478,6 +479,8 @@ int wpa_snprintf_hex(char *buf, size_t buf_size, const u8 *data, size_t len);
+@@ -478,6 +479,8 @@ int wpa_snprintf_hex(char *buf, size_t b
  int wpa_snprintf_hex_uppercase(char *buf, size_t buf_size, const u8 *data,
  			       size_t len);
  
@@ -167,11 +164,9 @@ index 14d9ad1..1127074 100644
  #ifdef CONFIG_NATIVE_WINDOWS
  void wpa_unicode2ascii_inplace(TCHAR *str);
  TCHAR * wpa_strdup_tchar(const char *str);
-diff --git a/wpa_supplicant/config.c b/wpa_supplicant/config.c
-index 8d1e1e0..7f742cb 100644
 --- a/wpa_supplicant/config.c
 +++ b/wpa_supplicant/config.c
-@@ -235,6 +235,99 @@ static char * wpa_config_write_int(const struct parse_data *data,
+@@ -236,6 +236,99 @@ static char * wpa_config_write_int(const
  #endif /* NO_CONFIG_WRITE */
  
  
@@ -271,7 +266,7 @@ index 8d1e1e0..7f742cb 100644
  static int wpa_config_parse_bssid(const struct parse_data *data,
  				  struct wpa_ssid *ssid, int line,
  				  const char *value)
-@@ -280,6 +373,50 @@ static char * wpa_config_write_bssid(const struct parse_data *data,
+@@ -281,6 +374,50 @@ static char * wpa_config_write_bssid(con
  #endif /* NO_CONFIG_WRITE */
  
  
@@ -322,7 +317,7 @@ index 8d1e1e0..7f742cb 100644
  static int wpa_config_parse_psk(const struct parse_data *data,
  				struct wpa_ssid *ssid, int line,
  				const char *value)
-@@ -1435,53 +1572,10 @@ static int wpa_config_parse_p2p_client_list(const struct parse_data *data,
+@@ -1436,53 +1573,10 @@ static int wpa_config_parse_p2p_client_l
  					    struct wpa_ssid *ssid, int line,
  					    const char *value)
  {
@@ -380,7 +375,7 @@ index 8d1e1e0..7f742cb 100644
  }
  
  
-@@ -1489,34 +1583,9 @@ static int wpa_config_parse_p2p_client_list(const struct parse_data *data,
+@@ -1490,34 +1584,9 @@ static int wpa_config_parse_p2p_client_l
  static char * wpa_config_write_p2p_client_list(const struct parse_data *data,
  					       struct wpa_ssid *ssid)
  {
@@ -418,7 +413,7 @@ index 8d1e1e0..7f742cb 100644
  }
  #endif /* NO_CONFIG_WRITE */
  
-@@ -1667,6 +1736,8 @@ static const struct parse_data ssid_fields[] = {
+@@ -1824,6 +1893,8 @@ static const struct parse_data ssid_fiel
  	{ STR_RANGE(ssid, 0, MAX_SSID_LEN) },
  	{ INT_RANGE(scan_ssid, 0, 1) },
  	{ FUNC(bssid) },
@@ -427,7 +422,7 @@ index 8d1e1e0..7f742cb 100644
  	{ FUNC_KEY(psk) },
  	{ FUNC(proto) },
  	{ FUNC(key_mgmt) },
-@@ -1971,6 +2042,8 @@ void wpa_config_free_ssid(struct wpa_ssid *ssid)
+@@ -2132,6 +2203,8 @@ void wpa_config_free_ssid(struct wpa_ssi
  	os_free(ssid->freq_list);
  	os_free(ssid->bgscan);
  	os_free(ssid->p2p_client_list);
@@ -436,11 +431,9 @@ index 8d1e1e0..7f742cb 100644
  #ifdef CONFIG_HT_OVERRIDES
  	os_free(ssid->ht_mcs);
  #endif /* CONFIG_HT_OVERRIDES */
-diff --git a/wpa_supplicant/config_ssid.h b/wpa_supplicant/config_ssid.h
-index a4910d0..7443207 100644
 --- a/wpa_supplicant/config_ssid.h
 +++ b/wpa_supplicant/config_ssid.h
-@@ -128,6 +128,18 @@ struct wpa_ssid {
+@@ -129,6 +129,18 @@ struct wpa_ssid {
  	u8 bssid[ETH_ALEN];
  
  	/**
@@ -459,11 +452,9 @@ index a4910d0..7443207 100644
  	 * bssid_set - Whether BSSID is configured for this network
  	 */
  	int bssid_set;
-diff --git a/wpa_supplicant/events.c b/wpa_supplicant/events.c
-index 6761c1a..855653c 100644
 --- a/wpa_supplicant/events.c
 +++ b/wpa_supplicant/events.c
-@@ -703,6 +703,33 @@ static int bss_is_ess(struct wpa_bss *bss)
+@@ -703,6 +703,33 @@ static int bss_is_ess(struct wpa_bss *bs
  }
  
  
@@ -497,7 +488,7 @@ index 6761c1a..855653c 100644
  static struct wpa_ssid * wpa_scan_res_match(struct wpa_supplicant *wpa_s,
  					    int i, struct wpa_bss *bss,
  					    struct wpa_ssid *group,
-@@ -827,6 +854,24 @@ static struct wpa_ssid * wpa_scan_res_match(struct wpa_supplicant *wpa_s,
+@@ -827,6 +854,24 @@ static struct wpa_ssid * wpa_scan_res_ma
  			continue;
  		}
  
@@ -522,11 +513,9 @@ index 6761c1a..855653c 100644
  		if (!wpa_supplicant_ssid_bss_match(wpa_s, ssid, bss))
  			continue;
  
-diff --git a/wpa_supplicant/p2p_supplicant.c b/wpa_supplicant/p2p_supplicant.c
-index 8cd43df..60dcb5d 100644
 --- a/wpa_supplicant/p2p_supplicant.c
 +++ b/wpa_supplicant/p2p_supplicant.c
-@@ -831,7 +831,7 @@ static void wpas_p2p_add_persistent_group_client(struct wpa_supplicant *wpa_s,
+@@ -831,7 +831,7 @@ static void wpas_p2p_add_persistent_grou
  		return;
  
  	for (i = 0; s->p2p_client_list && i < s->num_p2p_clients; i++) {
@@ -535,7 +524,7 @@ index 8cd43df..60dcb5d 100644
  			      ETH_ALEN) != 0)
  			continue;
  
-@@ -839,32 +839,42 @@ static void wpas_p2p_add_persistent_group_client(struct wpa_supplicant *wpa_s,
+@@ -839,32 +839,42 @@ static void wpas_p2p_add_persistent_grou
  			return; /* already the most recent entry */
  
  		/* move the entry to mark it most recent */
@@ -587,7 +576,7 @@ index 8cd43df..60dcb5d 100644
  	}
  
  	if (wpa_s->parent->conf->update_config &&
-@@ -3276,7 +3286,7 @@ static void wpas_remove_persistent_peer(struct wpa_supplicant *wpa_s,
+@@ -3276,7 +3286,7 @@ static void wpas_remove_persistent_peer(
  		return;
  
  	for (i = 0; ssid->p2p_client_list && i < ssid->num_p2p_clients; i++) {
@@ -596,7 +585,7 @@ index 8cd43df..60dcb5d 100644
  			      ETH_ALEN) == 0)
  			break;
  	}
-@@ -3296,9 +3306,9 @@ static void wpas_remove_persistent_peer(struct wpa_supplicant *wpa_s,
+@@ -3296,9 +3306,9 @@ static void wpas_remove_persistent_peer(
  		   "group %d client list%s",
  		   MAC2STR(peer), ssid->id,
  		   inv ? " due to invitation result" : "");
@@ -609,7 +598,7 @@ index 8cd43df..60dcb5d 100644
  	ssid->num_p2p_clients--;
  	if (wpa_s->parent->conf->update_config &&
  	    wpa_config_write(wpa_s->parent->confname, wpa_s->parent->conf))
-@@ -6925,7 +6935,7 @@ struct wpa_ssid * wpas_p2p_get_persistent(struct wpa_supplicant *wpa_s,
+@@ -6925,7 +6935,7 @@ struct wpa_ssid * wpas_p2p_get_persisten
  		if (s->mode != WPAS_MODE_P2P_GO || s->p2p_client_list == NULL)
  			continue;
  		for (i = 0; i < s->num_p2p_clients; i++) {
@@ -618,8 +607,6 @@ index 8cd43df..60dcb5d 100644
  				      addr, ETH_ALEN) == 0)
  				return s; /* peer is P2P client in persistent
  					   * group */
-diff --git a/wpa_supplicant/wpa_supplicant.conf b/wpa_supplicant/wpa_supplicant.conf
-index 0e8a28a..4bc08db 100644
 --- a/wpa_supplicant/wpa_supplicant.conf
 +++ b/wpa_supplicant/wpa_supplicant.conf
 @@ -1408,6 +1408,21 @@ network={
@@ -644,6 +631,3 @@ index 0e8a28a..4bc08db 100644
  
  # Example config file that will only scan on channel 36.
  freq_list=5180
--- 
-2.1.3
-
