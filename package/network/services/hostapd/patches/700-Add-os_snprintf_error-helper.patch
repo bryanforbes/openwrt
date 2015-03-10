@@ -7,8 +7,6 @@ Signed-off-by: Jouni Malinen <j@w1.fi>
  src/utils/os.h | 6 ++++++
  1 file changed, 6 insertions(+)
 
-diff --git a/src/utils/os.h b/src/utils/os.h
-index b9247d8..77250d6 100644
 --- a/src/utils/os.h
 +++ b/src/utils/os.h
 @@ -549,6 +549,12 @@ char * os_strdup(const char *s);
@@ -24,6 +22,3 @@ index b9247d8..77250d6 100644
  static inline void * os_realloc_array(void *ptr, size_t nmemb, size_t size)
  {
  	if (size && nmemb > (~(size_t) 0) / size)
--- 
-2.1.3
-
