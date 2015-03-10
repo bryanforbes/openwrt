@@ -63,11 +63,9 @@ Signed-off-by: Sergey Ryazanov <ryazanov.s.a@gmail.com>
  drivers/net/wireless/ath/ath5k/reset.c | 24 ------------------------
  2 files changed, 21 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/net/wireless/ath/ath5k/base.c b/drivers/net/wireless/ath/ath5k/base.c
-index bc9cb35..34b2f15 100644
 --- a/drivers/net/wireless/ath/ath5k/base.c
 +++ b/drivers/net/wireless/ath/ath5k/base.c
-@@ -2858,7 +2858,7 @@ ath5k_reset(struct ath5k_hw *ah, struct ieee80211_channel *chan,
+@@ -2858,7 +2858,7 @@ ath5k_reset(struct ath5k_hw *ah, struct
  {
  	struct ath_common *common = ath5k_hw_common(ah);
  	int ret, ani_mode;
@@ -76,7 +74,7 @@ index bc9cb35..34b2f15 100644
  
  	ATH5K_DBG(ah, ATH5K_DEBUG_RESET, "resetting\n");
  
-@@ -2876,11 +2876,29 @@ ath5k_reset(struct ath5k_hw *ah, struct ieee80211_channel *chan,
+@@ -2876,11 +2876,29 @@ ath5k_reset(struct ath5k_hw *ah, struct
  	 * so we should also free any remaining
  	 * tx buffers */
  	ath5k_drain_tx_buffs(ah);
@@ -108,11 +106,9 @@ index bc9cb35..34b2f15 100644
  	ret = ath5k_hw_reset(ah, ah->opmode, ah->curchan, fast, skip_pcu);
  	if (ret) {
  		ATH5K_ERR(ah, "can't reset hardware (%d)\n", ret);
-diff --git a/drivers/net/wireless/ath/ath5k/reset.c b/drivers/net/wireless/ath/ath5k/reset.c
-index b9b651e..99e62f9 100644
 --- a/drivers/net/wireless/ath/ath5k/reset.c
 +++ b/drivers/net/wireless/ath/ath5k/reset.c
-@@ -1169,30 +1169,6 @@ ath5k_hw_reset(struct ath5k_hw *ah, enum nl80211_iftype op_mode,
+@@ -1169,30 +1169,6 @@ ath5k_hw_reset(struct ath5k_hw *ah, enum
  	if (ah->ah_version == AR5K_AR5212)
  		ath5k_hw_set_sleep_clock(ah, false);
  
